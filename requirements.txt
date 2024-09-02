@@ -4,7 +4,3 @@ numpy
 scikit-image
 matplotlib
 tqdm
-
-# AI packages
-jupyter-ai
-langchain-openai

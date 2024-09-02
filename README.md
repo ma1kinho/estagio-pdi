@@ -4,17 +4,17 @@ This project is part of a two-day practical workshop on Digital Image Processing
 
 ### Table of Contents
 1. [Prerequisites](#prerequisites)
-2. [Day 1 Practice](#day-1-practice)
-   - [Setting up the Environment](#setting-up-the-environment)
-   - [Project Structure and DVC Setup](#project-structure-and-dvc-setup)
-   - [Implementing Traditional OCR Pipeline](#implementing-traditional-ocr-pipeline)
-   - [Running and Tracking Experiments with Guild AI](#running-and-tracking-experiments-with-guild-ai)
-3. [Day 2 Practice](#day-2-practice)
-   - [Advanced DVC Usage](#advanced-dvc-usage)
-   - [Defining Hyperparameter Spaces in Guild AI](#defining-hyperparameter-spaces-in-guild-ai)
-   - [Running a Hyperparameter Tuning Experiment](#running-a-hyperparameter-tuning-experiment)
-   - [Analyzing and Visualizing Results](#analyzing-and-visualizing-results)
-4. [Homework](#homework)
+2. [Day 1 Practice](./part_1/README.md#day-1-practice)
+   - [Setting up the Environment](./part_1/README.md#setting-up-the-environment)
+   - [Project Structure and DVC Setup](./part_1/README.md#project-structure-and-dvc-setup)
+   - [Implementing Traditional OCR Pipeline](./part_1/README.md#implementing-traditional-ocr-pipeline)
+   - [Running and Tracking Experiments with DVC](./part_1/README.md#running-and-tracking-experiments-with-dvc)
+   - [Homework](./part_1/README.md#homework)
+3. [Day 2 Practice](./part_2/README.md#day-2-practice)
+   - [Advanced DVC Usage](./part_2/README.md#advanced-dvc-usage)
+   - [Defining Hyperparameter Spaces in DVC](./part_2/README.md#defining-hyperparameter-spaces-in-dvc)
+   - [Running a Hyperparameter Tuning Experiment](./part_2/README.md#running-a-hyperparameter-tuning-experiment)
+   - [Analyzing and Visualizing Results](./part_2/README.md#analyzing-and-visualizing-results)
 5. [References](#references)
 
 ### Prerequisites
@@ -31,13 +31,12 @@ pip install -r requirements
 
 Verify installations:
 ```bash
-guild check
-dvc --version
+dvc doctor
 ```
 
 
 ### References
 
-- [Guild AI Documentation](https://guild.ai/docs/)
 - [DVC Documentation](https://dvc.org/doc)
 - [OpenCV Documentation](https://docs.opencv.org/)
+- [scikit-learn documentation](https://scikit-learn.org/stable/user_guide.html)

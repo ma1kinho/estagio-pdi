@@ -15,6 +15,7 @@ project_root/
 ├── src/
 │   ├── preprocess.py
 │   ├── ocr.py
+│   ├── utils.py
 │   └── evaluate.py
 ├── .dvc/
 ├── .gitignore
@@ -30,8 +31,9 @@ Implement OCR processing steps using OpenCV and scikit-image in the `src` direct
 - `preprocess.py`: For image preprocessing (e.g., grayscale conversion, noise reduction, thresholding).
 - `ocr.py`: For character segmentation and recognition.
 - `evaluate.py`: For calculating accuracy and visualizing results.
+- `evaluate.py`: For shared functions.
 
-#### Running and Tracking Experiments with Guild AI
+#### Running and Tracking Experiments with DVC
 
 Define and run experiments using DvC by setting up `dvc.yaml` and running different configurations.
 
