@@ -25,6 +25,12 @@ Define and run experiments using DvC by setting up `dvc.yaml` and running differ
 
 #### Homework
 
-- Experiment with different preprocessing techniques (e.g., edge detection, different thresholding methods)
-- Implement and test a template matching or other machnine learning approaches for character recognition
+- Create a notebook with 
+  - A new image enhancement technique (e.g. CLAHE)
+  - A new thresholding method 
+  - Combine thresholding with inversion detection
+  - Improve character segmentation technique (e.g., improving morphological operations, projection profiles etc.)
+  - Add a new feature extraction method (e.g. ORB)
+  - Add a new character recognition technique (e.g. template matching, MLPs etc.)
+- Experiment with different parameters
 - Track all experiments using DvC
