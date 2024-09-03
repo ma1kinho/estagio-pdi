@@ -1,3 +1,6 @@
+prepare:
+  input_file: data.zip
+  output_dir: .
 preprocess:
   data_dir: data/images/train
   output_dir: outputs/preprocessed
@@ -27,4 +30,5 @@ evaluate:
   model_file: outputs/ocr_model.pkl
   images_dir: data/images/val
   labels_dir: data/labels/val
-  output_file: outputs/metrics.csv
+  metrics_file: outputs/metrics.csv
+  predictions_file: outputs/metrics.csv

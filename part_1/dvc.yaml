@@ -68,7 +68,8 @@ stages:
       --model_file ${train.output_model}
       --images_dir ${preprocess.data_dir}
       --labels_dir ${train.labels_dir}
-      --output_file ${evaluate.output_file}
+      --metrics_file ${evaluate.metrics_file}
+      --predictions_file ${evaluate.predictions_file}
       --blur_kernel ${preprocess.blur_kernel}
       --threshold_method ${preprocess.threshold_method}
       --morph_kernel ${preprocess.morph_kernel}
@@ -84,5 +85,7 @@ stages:
       - ${preprocess.data_dir}
       - ${train.labels_dir}
     outs:
-      - ${evaluate.output_file}:
+      - ${evaluate.metrics_file}:
+          cache: false
+      - ${evaluate.predictions_file}:
           cache: false

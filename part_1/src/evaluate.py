@@ -22,7 +22,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--model_file", type=str, required=True, help="Path to the trained model file.")
     parser.add_argument("--images_dir", type=str, required=True, help="Directory containing images to evaluate.")
     parser.add_argument("--labels_dir", type=str, required=True, help="Directory containing ground truth labels.")
-    parser.add_argument("--output_file", type=str, default="outputs/metrics.json", help="Output file to save evaluation metrics.")
+    parser.add_argument("--metrics_file", type=str, default="outputs/metrics.json", help="Output file to save evaluation metrics.")
+    parser.add_argument("--predictions_file", type=str, default="outputs/predictions.csv", help="Output file to save evaluation metrics.")
     
     # Preprocessing arguments
     parser.add_argument("--blur_kernel", type=int, default=7, help="Kernel size for Gaussian blur in preprocessing.")
@@ -55,7 +56,7 @@ def load_model(model_file: Path) -> object:
         model = pickle.load(f)
     return model
 
-def evaluate_model(model: object, images_dir: Path, labels: Dict[str, str], args: argparse.Namespace) -> Tuple[float, float]:
+def evaluate_model(model: object, images_dir: Path, labels: Dict[str, str], args: argparse.Namespace) -> Tuple[float, float, dict]:
     """
     Evaluate the model on the given set of images and labels.
 
@@ -72,6 +73,7 @@ def evaluate_model(model: object, images_dir: Path, labels: Dict[str, str], args
     char_total = 0
     sample_correct = 0
     sample_total = 0
+    predictions = {}
 
     for image_path in images_dir.glob("*.png"):  # Adjust if your images are not in PNG format
         sample_name = image_path.stem
@@ -111,6 +113,9 @@ def evaluate_model(model: object, images_dir: Path, labels: Dict[str, str], args
         true_text = labels[sample_name]
         char_total += len(true_text)
         char_correct += sum(1 for p, t in zip(predicted_text, true_text) if p == t)
+
+        # Add the prediction to the dictionary
+        predictions[sample_name] = predicted_text
         
         sample_total += 1
         if predicted_text == true_text:
@@ -119,9 +124,9 @@ def evaluate_model(model: object, images_dir: Path, labels: Dict[str, str], args
     char_accuracy = char_correct / char_total if char_total > 0 else 0
     sample_accuracy = sample_correct / sample_total if sample_total > 0 else 0
 
-    return char_accuracy, sample_accuracy
+    return char_accuracy, sample_accuracy, predictions
 
-def save_metrics(char_accuracy: float, sample_accuracy: float, output_file: Path) -> None:
+def save_metrics(char_accuracy: float, sample_accuracy: float, metric_file: Path) -> None:
     """
     Save evaluation metrics to a JSON file.
 
@@ -135,8 +140,21 @@ def save_metrics(char_accuracy: float, sample_accuracy: float, output_file: Path
         "sample_accuracy": sample_accuracy
     }
     
-    with output_file.open('w') as f:
+    with metric_file.open('w') as f:
         json.dump(metrics, f, indent=4)
+
+def save_predictions(predictions: dict, predictions_file: Path) -> None:
+    """
+    Save the predictions to a CSV file.
+
+    Args:
+        predictions (dict): Dictionary of sample names and corresponding predictions.
+        predictions_file (Path): Path to the output CSV file.
+    """
+    with predictions_file.open('w') as f:
+        f.write("sample,prediction\n")
+        for sample, prediction in predictions.items():
+            f.write(f"{sample},{prediction}\n")
 
 def main() -> None:
     """
@@ -151,12 +169,14 @@ def main() -> None:
     labels = load_labels(Path(args.labels_dir))
 
     # Evaluate the model
-    char_accuracy, sample_accuracy = evaluate_model(model, Path(args.images_dir), labels, args)
+    char_accuracy, sample_accuracy, predictions = evaluate_model(model, Path(args.images_dir), labels, args)
 
     # Save the metrics to a file
-    save_metrics(char_accuracy, sample_accuracy, Path(args.output_file))
+    save_metrics(char_accuracy, sample_accuracy, Path(args.metrics_file))
+    # Save the predictions to a file
+    save_predictions(predictions, Path(args.predictions_file))
 
-    print(f"Evaluation completed. Metrics saved to {args.output_file}")
+    print(f"Evaluation completed. Metrics saved to {args.metrics_file}. Predictions saved to {args.predictions_file}.")
 
 if __name__ == "__main__":
     main()
