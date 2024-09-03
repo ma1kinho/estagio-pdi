@@ -1,4 +1,5 @@
 dvc
+dvc_gdrive
 opencv-python
 numpy
 scikit-image

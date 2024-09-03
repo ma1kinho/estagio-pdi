@@ -7,3 +7,4 @@
     url = gdrive://1dV8NGtjhPl9uAwSh_T9_171HMfkUyC9B
     gdrive_client_id = 334350336043-rcce2r8343g0igh094g9rfn0lglogp4g.apps.googleusercontent.com
     gdrive_client_secret = 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
+    gdrive_use_service_account = true
