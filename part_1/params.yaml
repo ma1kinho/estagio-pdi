@@ -11,6 +11,8 @@ segment:
   input_dir: outputs/preprocessed
   output_file: outputs/segmentation_results.pkl
   min_area: 50
+  max_area: 500
+  connectivity: 4
 extract:
   segmentation_file: outputs/segmentation_results.pkl
   input_dir: data/images/train

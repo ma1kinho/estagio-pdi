@@ -11,27 +11,27 @@ stages:
       nfiles: 10000
     - path: src/preprocess.py
       hash: md5
-      md5: ef5f8e358996c7abbcb56ba2201ac923
-      size: 5235
+      md5: c78d72361aa5509a32e6a7bde8e27bda
+      size: 5239
     outs:
     - path: outputs/preprocessed
       hash: md5
-      md5: 76e061d821a5a4884d99a564e517feb4.dir
-      size: 57285623
+      md5: 5a8be3c753bd1083650dee986cbd5d8b.dir
+      size: 60758719
       nfiles: 10000
   segment:
     cmd: python src/segment.py --input_dir outputs/preprocessed --output_file outputs/segmentation_results.pkl
-      --min_area 50
+      --min_area 50 --max_area 500 --connectivity 4
     deps:
     - path: outputs/preprocessed
       hash: md5
-      md5: 76e061d821a5a4884d99a564e517feb4.dir
-      size: 57285623
+      md5: 5a8be3c753bd1083650dee986cbd5d8b.dir
+      size: 60758719
       nfiles: 10000
     - path: src/segment.py
       hash: md5
-      md5: 41e8449bf3cb398761215acfef08fec2
-      size: 3713
+      md5: b77e3155e882d156bea84918b55f699d
+      size: 3897
     outs:
     - path: outputs/segmentation_results.pkl
       hash: md5

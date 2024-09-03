@@ -37,7 +37,7 @@ def load_image(image_path: Path) -> np.ndarray:
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     return grayscale_image
 
-def reduce_noise(image: np.ndarray, kernel_size: int = 5) -> np.ndarray:
+def reduce_noise(image: np.ndarray, kernel_size: int = 3) -> np.ndarray:
     """
     Apply Gaussian blur to reduce noise in the image.
 
