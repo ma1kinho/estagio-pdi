@@ -25,7 +25,7 @@ Define and run experiments using DvC by setting up `dvc.yaml` and running differ
 
 #### Homework
 
-- Create a notebook with 
+- Update the OCR pipeline with
   - A new image enhancement technique (e.g. CLAHE)
   - A new thresholding method 
   - Combine thresholding with inversion detection
