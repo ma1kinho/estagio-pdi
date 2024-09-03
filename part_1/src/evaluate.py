@@ -1,91 +1,162 @@
-import os
-import string
+import argparse
 import pickle
-import random
-import cv2
+import json
+from pathlib import Path
+from typing import Dict, Tuple
 
-import numpy as np
-from tqdm import tqdm
-from matplotlib import pyplot as plt
+from preprocess import preprocess_image
+from segment import segment_image
+from extract import extract_features
+from utils import load_labels
 
-from utils import  load_labels, load_predictions, TQDM_FORMAT
-from ocr import connected_component_analysis, extract_features
+def parse_arguments() -> argparse.Namespace:
+    """
+    Parse command-line arguments for the evaluation script.
 
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
+    """
+    parser = argparse.ArgumentParser(description="Evaluate trained OCR model on a set of images and labels.")
+    
+    # General arguments
+    parser.add_argument("--model_file", type=str, required=True, help="Path to the trained model file.")
+    parser.add_argument("--images_dir", type=str, required=True, help="Directory containing images to evaluate.")
+    parser.add_argument("--labels_dir", type=str, required=True, help="Directory containing ground truth labels.")
+    parser.add_argument("--output_file", type=str, default="outputs/metrics.json", help="Output file to save evaluation metrics.")
+    
+    # Preprocessing arguments
+    parser.add_argument("--blur_kernel", type=int, default=7, help="Kernel size for Gaussian blur in preprocessing.")
+    parser.add_argument("--threshold_method", type=str, default="otsu", choices=['otsu', 'adaptive'], help="Thresholding method for binarization ('otsu' or 'adaptive').")
+    parser.add_argument("--morph_kernel", type=int, default=3, help="Kernel size for morphological operations in preprocessing.")
 
-DISPLAY = True
+    # Segmentation arguments
+    parser.add_argument("--min_area", type=int, default=50, help="Minimum area of connected components to consider in segmentation.")
 
-data_dir = "data/images/train"
-labels_dir = "data/labels/train"
-processed_images = "outputs/preprocessed.pkl"
-predictions_file = "outputs/predictions.csv"
-model_path = "outputs/ocr_model.pkl"
+    # Feature extraction arguments
+    parser.add_argument("--hog_orientations", type=int, default=9, help="Number of orientation bins for HOG feature extraction.")
+    parser.add_argument("--hog_pixels_per_cell", type=int, default=8, help="Size (in pixels) of a cell for HOG feature extraction.")
+    parser.add_argument("--hog_cells_per_block", type=int, default=2, help="Number of cells in each block for HOG feature extraction.")
+    parser.add_argument("--lbp_radius", type=int, default=1, help="Radius for LBP feature extraction.")
+    parser.add_argument("--lbp_points", type=int, default=8, help="Number of points for LBP feature extraction.")
 
-def evaluate_ocr_model(model, images):
-    """Evaluate the trained model on a set of images."""
-    predictions = {}
+    return parser.parse_args()
 
-    for image_path, image in tqdm(zip(os.listdir(data_dir), images), bar_format=TQDM_FORMAT, desc="Evaluating...", total=len(images)):
-        characters = connected_component_analysis(image)
-        pred_text = ""
+def load_model(model_file: Path) -> object:
+    """
+    Load the trained OCR model from a file.
 
-        for (x, y, w, h) in characters:
-            char_image = image[y:y+h, x:x+w]
-            features_i = extract_features(char_image)
-            char_pred = model.predict([features_i])
-            pred_text += char_pred[0]
+    Args:
+        model_file (Path): Path to the trained model file.
+
+    Returns:
+        object: Loaded model object.
+    """
+    with model_file.open('rb') as f:
+        model = pickle.load(f)
+    return model
+
+def evaluate_model(model: object, images_dir: Path, labels: Dict[str, str], args: argparse.Namespace) -> Tuple[float, float]:
+    """
+    Evaluate the model on the given set of images and labels.
+
+    Args:
+        model (object): Trained OCR model.
+        images_dir (Path): Directory containing images to evaluate.
+        labels (Dict[str, str]): Dictionary of ground truth labels.
+        args (argparse.Namespace): Command-line arguments with parameters for the pipeline.
+
+    Returns:
+        Tuple[float, float]: Character-level accuracy and sample-level accuracy.
+    """
+    char_correct = 0
+    char_total = 0
+    sample_correct = 0
+    sample_total = 0
+
+    for image_path in images_dir.glob("*.png"):  # Adjust if your images are not in PNG format
+        sample_name = image_path.stem
+        if sample_name not in labels:
+            continue
+
+        # Preprocess the image
+        processed_image = preprocess_image(
+            image_path,
+            blur_kernel=args.blur_kernel,
+            threshold_method=args.threshold_method,
+            morph_kernel=args.morph_kernel
+        )
+
+        # Segment characters in the image
+        bounding_boxes = segment_image(processed_image, kernel=args.morph_kernel)
+
+        # Extract features for each character
+        predicted_text = ""
+        for box in bounding_boxes:
+            x1, y1, x2, y2 = box
+            roi = processed_image[y1:y2, x1:x2]
+            features = extract_features(
+                roi,
+                hog_orientations=args.hog_orientations,
+                hog_pixels_per_cell=args.hog_pixels_per_cell,
+                hog_cells_per_block=args.hog_cells_per_block,
+                lbp_radius=args.lbp_radius,
+                lbp_points=args.lbp_points
+            )
+
+            # Predict character using the trained model
+            predicted_char = model.predict([features])[0]
+            predicted_text += predicted_char
+
+        # Compare the predicted text with the ground truth label
+        true_text = labels[sample_name]
+        char_total += len(true_text)
+        char_correct += sum(1 for p, t in zip(predicted_text, true_text) if p == t)
         
-        # Image ID
-        image_id = os.path.basename(image_path).split('.')[0]
-        predictions[image_id] = pred_text
+        sample_total += 1
+        if predicted_text == true_text:
+            sample_correct += 1
 
-    return predictions
+    char_accuracy = char_correct / char_total if char_total > 0 else 0
+    sample_accuracy = sample_correct / sample_total if sample_total > 0 else 0
 
+    return char_accuracy, sample_accuracy
 
-def calculate_accuracy(predicted_text, true_text):
-    """Calculate the accuracy of the OCR by comparing with the ground truth."""
-    correct_chars = sum(p == t for p, t in zip(predicted_text, true_text))
-    accuracy = correct_chars / len(true_text) if true_text else 0
-    return accuracy
+def save_metrics(char_accuracy: float, sample_accuracy: float, output_file: Path) -> None:
+    """
+    Save evaluation metrics to a JSON file.
 
-def display_image(data_dir, samples):
-    """Display the image with the predicted text."""
-    for image_id, prediction in samples:
-        image_path = os.path.join(data_dir, image_id + ".jpg")
-        image = cv2.imread(image_path)
-        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        plt.title(f"Predicted Text: {prediction}")
-        plt.show()
+    Args:
+        char_accuracy (float): Character-level accuracy.
+        sample_accuracy (float): Sample-level accuracy.
+        output_file (Path): Path to the output JSON file.
+    """
+    metrics = {
+        "character_accuracy": char_accuracy,
+        "sample_accuracy": sample_accuracy
+    }
+    
+    with output_file.open('w') as f:
+        json.dump(metrics, f, indent=4)
 
+def main() -> None:
+    """
+    Main function to evaluate the OCR model.
+    """
+    args = parse_arguments()
+
+    # Load the trained model
+    model = load_model(Path(args.model_file))
+
+    # Load the ground truth labels
+    labels = load_labels(Path(args.labels_dir))
+
+    # Evaluate the model
+    char_accuracy, sample_accuracy = evaluate_model(model, Path(args.images_dir), labels, args)
+
+    # Save the metrics to a file
+    save_metrics(char_accuracy, sample_accuracy, Path(args.output_file))
+
+    print(f"Evaluation completed. Metrics saved to {args.output_file}")
 
 if __name__ == "__main__":
-    # Load the preprocessed images
-    with open(processed_images, 'rb') as f:
-        images = pickle.load(f)
-
-    # Load model
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
-
-    labels = load_labels(labels_dir)
-    predictions = evaluate_ocr_model(model, images)
-    # labels and predictions are dictionaries with sample ID as key and text as value
-    accuracies = []
-    for sample in labels.keys():
-        true_text = labels[sample]
-        predicted_text = predictions[sample]
-        accuracy = calculate_accuracy(predicted_text, true_text)
-        accuracies.append(accuracy)
-
-    print(f"Avg. Accuracy: {np.mean(accuracies):.4f}")
-    print(f"Std. Deviation: {np.std(accuracies):.4f}")
-
-    # Write predictions to a CSV file (output_file)
-    with open(predictions_file, 'w') as f:
-        f.write("image,predictio\n")
-        for image, prediction in predictions.items():
-            f.write(f"{image},{prediction}\n")
-
-    if DISPLAY:
-        # Select 5 random images for display
-        samples = random.sample(list(predictions.items()), 5)
-        display_image(data_dir, samples)
+    main()

@@ -1,0 +1,5 @@
+data_dir: data/images/train
+output_dir: outputs/preprocessed
+blur_kernel: 5
+threshold_method: adaptive
+morph_kernel: 3

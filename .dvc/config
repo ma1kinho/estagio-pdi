@@ -1,0 +1,3 @@
+[hydra]
+    enabled = True
+    config_dir = part_1/conf

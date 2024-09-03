@@ -1,0 +1,4 @@
+model_file: "outputs/ocr_model.pkl"
+images_dir: "data/images/val"
+labels_dir: "data/labels/val"
+output_file: "outputs/metrics.csv"

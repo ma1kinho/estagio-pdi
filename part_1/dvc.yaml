@@ -1,0 +1,87 @@
+# dvc.yaml
+
+stages:
+  preprocess:
+    cmd: >-
+      python src/preprocess.py
+      --data_dir ${preprocess.data_dir}
+      --output_dir ${preprocess.output_dir}
+      --blur_kernel ${preprocess.blur_kernel}
+      --threshold_method ${preprocess.threshold_method}
+      --morph_kernel ${preprocess.morph_kernel}
+    deps:
+      - src/preprocess.py
+      - ${preprocess.data_dir}
+    outs:
+      - ${preprocess.output_dir}:
+          cache: false
+
+  segment:
+    cmd: >-
+      python src/segment.py
+      --input_dir ${segment.input_dir}
+      --output_file ${segment.output_file}
+      --min_area ${segment.min_area}
+    deps:
+      - src/segment.py
+      - ${segment.input_dir}
+    outs:
+      - ${segment.output_file}
+
+  extract:
+    cmd: >-
+      python src/extract.py
+      --segmentation_file ${extract.segmentation_file}
+      --input_dir ${extract.input_dir}
+      --output_file ${extract.output_file}
+      --hog_orientations ${extract.hog_orientations}
+      --hog_pixels_per_cell ${extract.hog_pixels_per_cell}
+      --hog_cells_per_block ${extract.hog_cells_per_block}
+      --lbp_radius ${extract.lbp_radius}
+      --lbp_points ${extract.lbp_points}
+    deps:
+      - src/extract.py
+      - ${extract.segmentation_file}
+      - ${extract.input_dir}
+    outs:
+      - ${extract.output_file}
+
+  train:
+    cmd: >-
+      python src/train.py
+      --feature_file ${train.feature_file}
+      --labels_dir ${train.labels_dir}
+      --output_model ${train.output_model}
+      --model_name ${train.model_name}
+      --random_state ${train.random_state}
+    deps:
+      - src/train.py
+      - ${train.feature_file}
+      - ${train.labels_dir}
+    outs:
+      - ${train.output_model}
+
+  evaluate:
+    cmd: >-
+      python src/evaluate.py
+      --model_file ${train.output_model}
+      --images_dir ${preprocess.data_dir}
+      --labels_dir ${train.labels_dir}
+      --output_file ${evaluate.output_file}
+      --blur_kernel ${preprocess.blur_kernel}
+      --threshold_method ${preprocess.threshold_method}
+      --morph_kernel ${preprocess.morph_kernel}
+      --min_area ${segment.min_area}
+      --hog_orientations ${extract.hog_orientations}
+      --hog_pixels_per_cell ${extract.hog_pixels_per_cell}
+      --hog_cells_per_block ${extract.hog_cells_per_block}
+      --lbp_radius ${extract.lbp_radius}
+      --lbp_points ${extract.lbp_points}
+    deps:
+      - src/evaluate.py
+      - ${train.output_model}
+      - ${preprocess.data_dir}
+      - ${train.labels_dir}
+    outs:
+      - ${evaluate.output_file}:
+          cache: false
