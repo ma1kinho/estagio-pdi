@@ -68,7 +68,7 @@ def apply_threshold(image: np.ndarray, method: str = 'otsu') -> np.ndarray:
         binary_image = binary_image.astype(np.uint8) * 255
     elif method == 'adaptive':
         binary_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                             cv2.THRESH_BINARY, 11, 2)
+                                             cv2.THRESH_BINARY_INV, 11, 2)
     else:
         return image  # Return the original image if the method is not recognized.
 

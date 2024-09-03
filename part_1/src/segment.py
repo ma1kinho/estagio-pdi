@@ -25,12 +25,17 @@ def parse_arguments() -> argparse.Namespace:
         default="outputs/segmentation_results.pkl",
         help="Output file to save segmentation results."
     )
-    # add min area and connectivity arguments
     parser.add_argument(
         "--min_area",
         type=int,
         default=50,
         help="Minimum area of connected components to consider in segmentation."
+    )
+    parser.add_argument(
+        "--max_area",
+        type=int,
+        default=500,
+        help="Maximum area of connected components to consider in segmentation."
     )
     parser.add_argument(
         "--connectivity",
@@ -40,7 +45,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-def cca(image: np.ndarray, min_area: int, connectivity: int) -> List[Tuple[int, int, int, int]]:
+def cca(image: np.ndarray, min_area: int, max_area: int, connectivity: int) -> List[Tuple[int, int, int, int]]:
     """
     Performs connected component analysis on an image to find bounding boxes around characters.
 
@@ -65,12 +70,12 @@ def cca(image: np.ndarray, min_area: int, connectivity: int) -> List[Tuple[int, 
     bounding_boxes = []
     for i in range(1, num_labels):  # Skip background label 0
         x, y, w, h, area = stats[i]
-        if area > min_area:  # Filter out small areas
+        if min_area < area < max_area:  # Filter out small areas
             bounding_boxes.append((x, y, x + w, y + h))
 
     return bounding_boxes
 
-def segment_image(image: np.ndarray, min_area: int = 50, connectivity: int = 8) -> List[Tuple[int, int, int, int]]:
+def segment_image(image: np.ndarray, min_area: int = 50, max_area: int = 500, connectivity: int = 8) -> List[Tuple[int, int, int, int]]:
     """
     Segment an image into characters using connected component analysis.
 
@@ -83,7 +88,7 @@ def segment_image(image: np.ndarray, min_area: int = 50, connectivity: int = 8) 
         list[tuple[int, int, int, int]]: List of bounding boxes for each character.
     """
     # TODO: improve this method to enhance the segmentation results somehow
-    return cca(image, min_area, connectivity)
+    return cca(image, min_area, max_area, connectivity)
 
 def main():
     """

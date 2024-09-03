@@ -23,6 +23,8 @@ stages:
       --input_dir ${segment.input_dir}
       --output_file ${segment.output_file}
       --min_area ${segment.min_area}
+      --max_area ${segment.max_area}
+      --connectivity ${segment.connectivity}
     deps:
       - src/segment.py
       - ${segment.input_dir}

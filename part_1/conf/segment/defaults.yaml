@@ -1,3 +1,5 @@
 input_dir: outputs/preprocessed
 output_file: outputs/segmentation_results.pkl
 min_area: 50
+max_area: 500
+connectivity: 4
