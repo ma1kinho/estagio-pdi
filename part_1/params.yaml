@@ -31,4 +31,4 @@ evaluate:
   images_dir: data/images/val
   labels_dir: data/labels/val
   metrics_file: outputs/metrics.csv
-  predictions_file: outputs/metrics.csv
+  predictions_file: outputs/predictions.csv
