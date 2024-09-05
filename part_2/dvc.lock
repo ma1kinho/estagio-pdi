@@ -1,0 +1,119 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py --data_dir data/images/train --output_dir outputs/preprocessed
+      --blur_kernel 5 --threshold_method adaptive --morph_kernel 3
+    deps:
+    - path: data/images/train
+      hash: md5
+      md5: 9aad5b0b7f022d8798e47752a64a0d05.dir
+      size: 36572277
+      nfiles: 9999
+    - path: src/preprocess.py
+      hash: md5
+      md5: 4bc0ec760521fb776eb56c259eb95325
+      size: 10853
+    outs:
+    - path: outputs/preprocessed
+      hash: md5
+      md5: c7685290561c28ab33d77d1d12495481.dir
+      size: 43245205
+      nfiles: 9999
+  segment:
+    cmd: python src/segment.py --input_dir outputs/preprocessed --output_file outputs/segmentation_results.pkl
+      --min_area 50 --max_area 500 --connectivity 4
+    deps:
+    - path: outputs/preprocessed
+      hash: md5
+      md5: c7685290561c28ab33d77d1d12495481.dir
+      size: 43245205
+      nfiles: 9999
+    - path: src/segment.py
+      hash: md5
+      md5: b77e3155e882d156bea84918b55f699d
+      size: 3897
+    outs:
+    - path: outputs/segmentation_results.pkl
+      hash: md5
+      md5: 9d1bcb3ae163fa48c36932b978ab99c9
+      size: 5
+  extract:
+    cmd: python src/extract.py --segmentation_file outputs/segmentation_results.pkl
+      --input_dir data/images/train --output_file outputs/features.pkl --hog_orientations
+      9 --hog_pixels_per_cell 8 --hog_cells_per_block 2 --lbp_radius 1 --lbp_points
+      8
+    deps:
+    - path: data/images/train
+      hash: md5
+      md5: 9aad5b0b7f022d8798e47752a64a0d05.dir
+      size: 36572277
+      nfiles: 9999
+    - path: outputs/segmentation_results.pkl
+      hash: md5
+      md5: 9d1bcb3ae163fa48c36932b978ab99c9
+      size: 5
+    - path: src/extract.py
+      hash: md5
+      md5: 9a426747be9c7401832021e45a7bb047
+      size: 4803
+    outs:
+    - path: outputs/features.pkl
+      hash: md5
+      md5: 9d1bcb3ae163fa48c36932b978ab99c9
+      size: 5
+  train:
+    cmd: python src/train.py --feature_file outputs/features.pkl --labels_dir data/labels/train
+      --output_model outputs/ocr_model.pkl --model_name SVM --random_state 42
+    deps:
+    - path: data/labels/train
+      hash: md5
+      md5: 49734fb994eec1278199524cc7e15ce3.dir
+      size: 5089127
+      nfiles: 9999
+    - path: outputs/features.pkl
+      hash: md5
+      md5: 9d1bcb3ae163fa48c36932b978ab99c9
+      size: 5
+    - path: src/train.py
+      hash: md5
+      md5: 28c157204a3528aad49bf9e384930bd0
+      size: 3837
+    outs:
+    - path: outputs/ocr_model.pkl
+      hash: md5
+      md5: ef2828612379f00b52887815e44a1900
+      size: 350
+  evaluate:
+    cmd: python src/evaluate.py --model_file outputs/ocr_model.pkl --images_dir data/images/train
+      --labels_dir data/labels/train --metrics_file outputs/metrics.csv --predictions_file
+      outputs/predictions.csv --blur_kernel 5 --threshold_method adaptive --morph_kernel
+      3 --min_area 50 --hog_orientations 9 --hog_pixels_per_cell 8 --hog_cells_per_block
+      2 --lbp_radius 1 --lbp_points 8
+    deps:
+    - path: data/images/train
+      hash: md5
+      md5: 9aad5b0b7f022d8798e47752a64a0d05.dir
+      size: 36572277
+      nfiles: 9999
+    - path: data/labels/train
+      hash: md5
+      md5: 49734fb994eec1278199524cc7e15ce3.dir
+      size: 5089127
+      nfiles: 9999
+    - path: outputs/ocr_model.pkl
+      hash: md5
+      md5: ef2828612379f00b52887815e44a1900
+      size: 350
+    - path: src/evaluate.py
+      hash: md5
+      md5: 6e0150b7b1a01738693d864c58618166
+      size: 7157
+    outs:
+    - path: outputs/metrics.csv
+      hash: md5
+      md5: 2536e70a142532300462b933032d3fd6
+      size: 57
+    - path: outputs/predictions.csv
+      hash: md5
+      md5: e4204d91394c6b1574f2265af977b9bc
+      size: 18

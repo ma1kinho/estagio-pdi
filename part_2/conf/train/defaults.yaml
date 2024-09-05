@@ -1,0 +1,5 @@
+feature_file: "outputs/features.pkl"
+labels_dir: "data/labels/train"
+output_model: "outputs/ocr_model.pkl"
+model_name: "SVM"
+random_state: 42

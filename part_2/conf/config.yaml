@@ -1,0 +1,8 @@
+# conf/config.yaml
+defaults:
+  - prepare: defaults
+  - preprocess: defaults
+  - segment: defaults
+  - extract: defaults
+  - train: defaults
+  - evaluate: defaults
