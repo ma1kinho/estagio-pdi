@@ -11,13 +11,13 @@ stages:
       nfiles: 9999
     - path: src/preprocess.py
       hash: md5
-      md5: 4bc0ec760521fb776eb56c259eb95325
-      size: 10853
+      md5: b50cf47deeaa8f93f68b335b2ab5e53d
+      size: 10667
     outs:
     - path: outputs/preprocessed
       hash: md5
-      md5: c7685290561c28ab33d77d1d12495481.dir
-      size: 43245205
+      md5: 166105e476897ccbde0e581b6d93ac6b.dir
+      size: 43099012
       nfiles: 9999
   segment:
     cmd: python src/segment.py --input_dir outputs/preprocessed --output_file outputs/segmentation_results.pkl
@@ -25,8 +25,8 @@ stages:
     deps:
     - path: outputs/preprocessed
       hash: md5
-      md5: c7685290561c28ab33d77d1d12495481.dir
-      size: 43245205
+      md5: 166105e476897ccbde0e581b6d93ac6b.dir
+      size: 43099012
       nfiles: 9999
     - path: src/segment.py
       hash: md5

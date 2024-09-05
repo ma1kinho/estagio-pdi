@@ -289,7 +289,7 @@ def main(args: argparse.Namespace) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # Iterate through each image in the specified directory and preprocess it
-    for image_path in tqdm(data_dir.iterdir(), bar_format=TQDM_FORMAT, desc="Preprocessing images"):
+    for image_path in tqdm(data_dir.iterdir(), bar_format=TQDM_FORMAT, desc="Preprocessing images", total=len(list(data_dir.iterdir()))):
         if image_path.is_file():
             processed_image = preprocess_image(
                 image_path,

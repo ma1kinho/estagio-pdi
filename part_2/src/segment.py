@@ -101,9 +101,10 @@ def main():
     segmentation_results = {}
 
     # Perform segmentation for each image in the directory
-    for image_path in input_dir.glob("*.png"):  # Assuming .png images; change if needed
+    for image_path in input_dir.glob("*.jpg"):  # Assuming .png images; change if needed
         image = cv2.imread(str(image_path))
         bounding_boxes = segment_image(image, args.min_area, args.connectivity)
+        print(f"Segmented {image_path.name} into {len(bounding_boxes)} components.")
         segmentation_results[image_path.name] = bounding_boxes
 
     # Save segmentation results to a file
