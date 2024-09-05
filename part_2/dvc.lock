@@ -11,13 +11,13 @@ stages:
       nfiles: 9999
     - path: src/preprocess.py
       hash: md5
-      md5: b50cf47deeaa8f93f68b335b2ab5e53d
-      size: 10667
+      md5: bbc4c2c8a1c5010f404ae1998a4fe931
+      size: 11093
     outs:
     - path: outputs/preprocessed
       hash: md5
-      md5: 166105e476897ccbde0e581b6d93ac6b.dir
-      size: 43099012
+      md5: d92da6e6f87fa7f696647e9febd90307.dir
+      size: 43674524
       nfiles: 9999
   segment:
     cmd: python src/segment.py --input_dir outputs/preprocessed --output_file outputs/segmentation_results.pkl
@@ -25,18 +25,18 @@ stages:
     deps:
     - path: outputs/preprocessed
       hash: md5
-      md5: 166105e476897ccbde0e581b6d93ac6b.dir
-      size: 43099012
+      md5: d92da6e6f87fa7f696647e9febd90307.dir
+      size: 43674524
       nfiles: 9999
     - path: src/segment.py
       hash: md5
-      md5: b77e3155e882d156bea84918b55f699d
-      size: 3897
+      md5: f03aec4a1c571d4031b103cf1aa6dc2c
+      size: 3982
     outs:
     - path: outputs/segmentation_results.pkl
       hash: md5
-      md5: 9d1bcb3ae163fa48c36932b978ab99c9
-      size: 5
+      md5: aee85354c8f6f05911f97befe4dfe609
+      size: 128920
   extract:
     cmd: python src/extract.py --segmentation_file outputs/segmentation_results.pkl
       --input_dir data/images/train --output_file outputs/features.pkl --hog_orientations
@@ -50,8 +50,8 @@ stages:
       nfiles: 9999
     - path: outputs/segmentation_results.pkl
       hash: md5
-      md5: 9d1bcb3ae163fa48c36932b978ab99c9
-      size: 5
+      md5: aee85354c8f6f05911f97befe4dfe609
+      size: 128920
     - path: src/extract.py
       hash: md5
       md5: 9a426747be9c7401832021e45a7bb047

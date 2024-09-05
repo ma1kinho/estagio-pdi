@@ -160,6 +160,18 @@ def _invert_image_by_histogram(image: np.ndarray) -> np.ndarray:
 
     return image
 
+def _invert_image_by_count(image: np.ndarray) -> np.ndarray:
+    """
+    Invert the image based on the count of dark pixels.
+    """
+    light_pixels = np.nonzero(image)[0].shape[0]
+    dark_pixels = image.size - light_pixels
+
+    if dark_pixels < light_pixels:
+        image = cv2.bitwise_not(image)
+
+    return image
+
 
 def _invert_image(image: np.ndarray, method: str) -> np.ndarray:
     """
@@ -176,6 +188,8 @@ def _invert_image(image: np.ndarray, method: str) -> np.ndarray:
         return _invert_image_by_thresholding(image)
     elif method == 'histogram':
         return _invert_image_by_histogram(image)
+    elif method == 'count':
+        return _invert_image_by_count(image)
     else:
         return image
 
@@ -246,7 +260,7 @@ def morphological_operations(image: np.ndarray, kernel: int = 3, **kwargs) -> np
     Returns:
         np.ndarray: Image after morphological operations.
     """
-    image = _invert_image(image, "histogram")
+    image = _invert_image(image, "count")
     image = deskew_image(image)
     kernel_matrix = np.ones((kernel, kernel), np.uint8)
     morph_image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel_matrix)
