@@ -80,44 +80,39 @@ def enhance_contrast(image: np.ndarray, clip_limit: float = 2.0, tile_grid_size:
 
 
 def detect_and_zoom_plate(image: np.ndarray) -> np.ndarray:
+        # Convert the image to binary using adaptive thresholding to emphasize contours
+    _, binary_image = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    # Step 2: Apply Edge Detection
-    # Use Canny edge detection to find edges in the image
-    edges = cv2.Canny(image, 100, 200)
+    # Dilate the image to close gaps between edge segments
+    kernel = np.ones((5, 5), np.uint8)
+    dilated_image = cv2.dilate(binary_image, kernel, iterations=1)
 
-    # Step 3: Find Contours
-    # Find contours in the edge-detected image
-    contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # Step 4: Filter Contours by Aspect Ratio and Size
-    plate_contour = None
+    # Find contours in the dilated image
+    contours, _ = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Filter contours based on area and aspect ratio to find possible license plate regions
+    possible_plates = []
     for contour in contours:
-        # Approximate the contour to a polygon
-        approx = cv2.approxPolyDP(contour, 0.02 * cv2.arcLength(contour, True), True)
+        x, y, w, h = cv2.boundingRect(contour)
+        aspect_ratio = w / float(h)
+        area = cv2.contourArea(contour)
         
-        # Check if the approximated contour has 4 points (likely a rectangle)
-        if len(approx) == 4:
-            # Compute the bounding box of the contour
-            x, y, w, h = cv2.boundingRect(approx)
-            aspect_ratio = w / float(h)
-            
-            # Check if the bounding box matches the expected aspect ratio of a license plate
-            if 2 < aspect_ratio < 5 and 1000 < cv2.contourArea(contour) < 15000:  # Adjust values based on image size
-                plate_contour = approx
-                break
+        # Typical aspect ratio for license plates and size constraints
+        if 2.0 < aspect_ratio < 6.0 and 1000 < area < 30000:
+            possible_plates.append((x, y, w, h))
 
-    # Step 5: Crop the License Plate Region
-    if plate_contour is not None:
-        # Draw the contour on the original image (optional for visualization)
-        cv2.drawContours(image, [plate_contour], -1, (0, 255, 0), 3)
+
+    # Extract and display the region of interest (ROI) based on the detected bounding box
+    if possible_plates:
+        # Assuming the first detected plate is the desired one (if multiple, further refinement may be needed)
+        x, y, w, h = possible_plates[0]
         
-        # Extract the bounding box coordinates and crop the image
-        x, y, w, h = cv2.boundingRect(plate_contour)
-        cropped_plate = image[y:y+h, x:x+w]
-        
-        return cropped_plate
-    else:
-        return image
+        # Crop the detected region of the license plate
+        plate_region = image[y:y + h, x:x + w]
+
+        return plate_region
+
+    return image
 
 
 def _invert_image_by_thresholding(image: np.ndarray) -> np.ndarray:
@@ -273,8 +268,8 @@ def preprocess_image(image_path: Path, **kwargs) -> np.ndarray:
     """
     image = load_image(image_path)
     image = enhance_contrast(image, **kwargs)
-    image = detect_and_zoom_plate(image)
     image = reduce_noise(image, **kwargs)
+    image = detect_and_zoom_plate(image)
     image = apply_threshold(image, **kwargs)
     image = morphological_operations(image, **kwargs)
     return image
